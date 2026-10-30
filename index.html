@@ -319,7 +319,7 @@
     <script src="./leaflet/leaflet.js"></script>
     <script>
         'use strict';
-        const CSV_PATH = './arrival_ponts.csv';
+        const CSV_PATH = './arrival_points.csv';
         const els = Object.fromEntries(['timeSlider', 'timeValue', 'timePercent', 'maxLabel', 'unit', 'cumulative', 'search', 'minDepth', 'fitVisible', 'visibleCount', 'arrivedCount', 'highCount', 'totalCount', 'export', 'reset', 'status', 'banner'].map(id => [id, document.getElementById(id)]));
         const map = L.map('map', {center: [37.173, -82.630], zoom: 13, minZoom: 11, maxZoom: 16});
         L.tileLayer('./jenkins_tiles/{z}/{x}/{y}.png', {minZoom: 11, maxZoom: 16, maxNativeZoom: 16, tms: false, tileSize: 256, attribution: 'Basemap: add required source attribution'}).addTo(map);
