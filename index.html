@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+  <title>Jenkins, Kentucky | Interactive Map</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="./leaflet/leaflet.css">
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    /* Map title */
+    .map-title {
+      position: absolute;
+      top: 15px;
+      left: 60px;
+      z-index: 1000;
+      background: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 17px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      pointer-events: none;
+    }
+    /* Attribution */
+    .leaflet-control-attribution {
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Map container -->
+  <div id="map"></div>
+  <!-- Map title -->
+  <div class="map-title">Jenkins, Kentucky</div>
+  <!-- Leaflet JavaScript -->
+  <script src="./leaflet/leaflet.js"></script>
+  <script>
+    // Initialize map centered on Jenkins, KY
+    const map = L.map('map', {
+      center: [37.173, -82.630],
+      zoom: 13,
+      minZoom: 11,
+      maxZoom: 16,
+      zoomControl: true
+    });
+    // Load locally exported QGIS XYZ tiles
+    const basemap = L.tileLayer(
+      './jenkins_tiles/{z}/{x}/{y}.png',
+      {
+        minZoom: 11,
+        maxZoom: 16,
+        maxNativeZoom: 16,
+        tileSize: 256,
+        tms: false,
+        attribution: 'Basemap: include required source credits'
+      }
+    );
+    basemap.addTo(map);
+    // Add scale bar
+    L.control.scale({
+      position: 'bottomleft',
+      metric: true,
+      imperial: true
+    }).addTo(map);
+  </script>
+</body>
+</html>
