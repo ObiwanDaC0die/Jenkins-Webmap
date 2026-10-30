@@ -1,10 +1,11 @@
+```html
 <!doctype html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Jenkins | Flood Impact Dashboard</title>
+    <title>Elkhorn Dam | Modeled Structure Inundation (Proof of Concept)</title>
 
     <link rel="stylesheet" href="./leaflet/leaflet.css">
 
@@ -25,7 +26,7 @@
 
         .app {
             display: grid;
-            grid-template-columns: 350px minmax(0, 1fr);
+            grid-template-columns: 360px minmax(0, 1fr);
             height: 100vh;
             height: 100dvh;
         }
@@ -33,19 +34,23 @@
         .panel {
             z-index: 900;
             overflow: auto;
-            padding: 18px;
+            padding: 16px 18px 24px;
             background: #fff;
             border-right: 1px solid #dce3eb;
         }
 
         h1 {
-            margin: 0 0 5px;
-            font-size: 21px;
+            margin: 0 0 4px;
+            font-size: 20px;
+            line-height: 1.25;
         }
 
         h2 {
-            margin: 19px 0 9px;
-            font-size: 14px;
+            margin: 18px 0 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #3d4f63;
         }
 
         p,
@@ -56,9 +61,17 @@
         }
 
         .note {
-            padding: 10px;
+            padding: 10px 12px;
             border-radius: 8px;
             background: #f0f5fb;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .note-warn {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
         }
 
         .stats {
@@ -68,14 +81,15 @@
         }
 
         .stat {
-            padding: 12px;
-            border-radius: 9px;
+            padding: 10px 12px;
+            border-radius: 8px;
             background: #f3f6fa;
         }
 
         .stat b {
             display: block;
-            font-size: 22px;
+            font-size: 20px;
+            line-height: 1.2;
         }
 
         .stat span {
@@ -85,7 +99,7 @@
 
         label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             font-size: 12px;
             font-weight: 650;
         }
@@ -98,7 +112,7 @@
         select,
         button {
             width: 100%;
-            padding: 9px;
+            padding: 8px 10px;
             border: 1px solid #cbd5e1;
             border-radius: 7px;
             background: #fff;
@@ -118,6 +132,14 @@
             opacity: 0.5;
         }
 
+        button:focus-visible,
+        select:focus-visible,
+        input[type="range"]:focus-visible,
+        input[type="checkbox"]:focus-visible {
+            outline: 2px solid #1768b4;
+            outline-offset: 2px;
+        }
+
         .row {
             display: flex;
             align-items: center;
@@ -127,7 +149,7 @@
 
         .legend {
             display: grid;
-            gap: 7px;
+            gap: 6px;
             font-size: 12px;
         }
 
@@ -138,17 +160,29 @@
             margin-right: 8px;
             border-radius: 50%;
             vertical-align: middle;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+        }
+
+        .depth-dist {
+            margin-top: 8px;
+            display: grid;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        .depth-dist .row {
+            padding: 3px 0;
         }
 
         .controls {
             display: grid;
-            gap: 12px;
-            margin-top: 12px;
+            gap: 11px;
+            margin-top: 10px;
         }
 
         .time {
             color: #1768b4;
-            font-size: 25px;
+            font-size: 22px;
             font-weight: 750;
         }
 
@@ -168,6 +202,7 @@
             overflow-wrap: anywhere;
             color: #41546c;
             font-size: 12px;
+            line-height: 1.45;
         }
 
         .error {
@@ -175,20 +210,24 @@
         }
 
         .foot {
-            margin-top: 20px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
             color: #68778b;
             font-size: 11px;
+            line-height: 1.45;
         }
 
         .inline {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 8px;
             font-size: 12px;
         }
 
         .inline input {
-            margin: 0;
+            margin: 2px 0 0;
+            flex-shrink: 0;
         }
 
         .buttons {
@@ -206,7 +245,7 @@
             z-index: 800;
             top: 14px;
             left: 50%;
-            max-width: 80%;
+            max-width: 85%;
             padding: 9px 13px;
             transform: translateX(-50%);
             border-radius: 8px;
@@ -214,25 +253,43 @@
             box-shadow: 0 2px 10px #0002;
             font-size: 12px;
             text-align: center;
+            line-height: 1.4;
         }
 
         .popup table {
             border-collapse: collapse;
+            margin-top: 4px;
         }
 
         .popup td {
-            padding: 3px 9px 3px 0;
+            padding: 2px 8px 2px 0;
             font-size: 12px;
+            vertical-align: top;
         }
 
         .popup td:first-child {
             font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .popup .note-sm {
+            margin-top: 6px;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.35;
+        }
+
+        .tech-note {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
         }
 
         @media (max-width: 760px) {
             .app {
                 grid-template-columns: 1fr;
-                grid-template-rows: minmax(280px, 44dvh) minmax(320px, 56dvh);
+                grid-template-rows: minmax(260px, 42dvh) minmax(340px, 58dvh);
             }
 
             .panel {
@@ -254,14 +311,21 @@
 
 <body>
     <div class="app">
-        <aside class="panel" aria-label="Flood impact controls">
-            <h1>Jenkins Flood Impact</h1>
-            <p>Modeled structure exposure • scenario exploration</p>
+        <aside class="panel" aria-label="Flood impact controls and summary">
+            <h1>Elkhorn Dam Flood Impact</h1>
+            <p class="muted" style="margin:0 0 10px;">Modeled structure exposure under a dam-breach scenario • planning visualization only</p>
 
-            <div class="note muted">
-                Planning visualization only. Arrival time is relative to the model's
-                scenario start, not a real-world clock time. Depth classes are not
-                evacuation thresholds.
+            <div class="note note-warn">
+                <strong>Proof of concept — not an official product.</strong>
+                This display is a supplemental planning aid only. It is not a replacement for the official Emergency Action Plan.
+                Arrival times are relative to the model start (not clock time). Depth classes are not evacuation thresholds.
+                Do not use this tool alone for life-safety, evacuation, or operational decisions.
+            </div>
+
+            <div class="note" style="margin-top:8px;">
+                <strong>What this shows</strong><br>
+                Structure locations that the model indicates would experience inundation. Each point is a de-identified structure.
+                Depth = modeled water-surface elevation (WSE) minus ground elevation (DEM). Times and depths come from the modeled scenario only.
             </div>
 
             <h2>Modeled arrival timeline</h2>
@@ -272,9 +336,9 @@
             </div>
 
             <input id="timeSlider" type="range" min="0" max="1" step="any" value="0"
-                disabled aria-label="Elapsed arrival time">
+                disabled aria-label="Elapsed arrival time from model start">
 
-            <div class="row muted">
+            <div class="row muted" style="margin-top:4px;">
                 <span>Scenario start</span>
                 <span id="maxLabel">—</span>
             </div>
@@ -282,23 +346,24 @@
             <div class="controls">
                 <div>
                     <label for="unit">Arrival-time unit</label>
-                    <select id="unit">
-                        <option value="hours" selected>Hours (assumed)</option>
+                    <select id="unit" aria-describedby="unitHelp">
+                        <option value="hours" selected>Hours (model units)</option>
                         <option value="minutes">Minutes</option>
                     </select>
+                    <p id="unitHelp" class="muted" style="margin:4px 0 0;">Confirm unit against model documentation.</p>
                 </div>
 
                 <div class="inline">
                     <input id="cumulative" type="checkbox" checked>
-                    <label for="cumulative" style="margin: 0;">
-                        Show all structures reached by selected time
+                    <label for="cumulative" style="margin:0; font-weight:500;">
+                        Show all structures reached by the selected time (cumulative)
                     </label>
                 </div>
 
                 <div>
                     <label for="minDepth">Minimum modeled depth</label>
                     <select id="minDepth">
-                        <option value="0">All depths, including unavailable</option>
+                        <option value="0">All depths</option>
                         <option value="1">At least 1 ft</option>
                         <option value="3">At least 3 ft</option>
                         <option value="6">At least 6 ft</option>
@@ -307,44 +372,49 @@
 
                 <div class="inline">
                     <input id="fitVisible" type="checkbox">
-                    <label for="fitVisible" style="margin: 0;">
-                        Fit map to filtered points
+                    <label for="fitVisible" style="margin:0; font-weight:500;">
+                        Fit map to currently displayed points
                     </label>
                 </div>
             </div>
 
             <h2>Structure summary</h2>
 
-            <div class="stats">
+            <div class="stats" role="group" aria-label="Structure counts">
                 <div class="stat">
                     <b id="visibleCount">0</b>
                     <span>Displayed structures</span>
                 </div>
-
                 <div class="stat">
                     <b id="arrivedCount">0</b>
-                    <span>Reached by time</span>
+                    <span>Reached by selected time</span>
                 </div>
-
                 <div class="stat">
                     <b id="highCount">0</b>
-                    <span>Reached at ≥6 ft</span>
+                    <span>Reached at ≥ 6 ft</span>
                 </div>
-
                 <div class="stat">
                     <b id="totalCount">0</b>
-                    <span>Valid structures</span>
+                    <span>Valid structures loaded</span>
                 </div>
             </div>
 
             <h2>Modeled water depth</h2>
 
-            <div class="legend">
+            <div class="legend" aria-label="Depth color legend">
                 <div><span class="dot" style="background:#16a34a"></span>Less than 1 ft</div>
                 <div><span class="dot" style="background:#eab308"></span>1 to less than 3 ft</div>
                 <div><span class="dot" style="background:#f97316"></span>3 to less than 6 ft</div>
                 <div><span class="dot" style="background:#dc2626"></span>6 ft or greater</div>
                 <div><span class="dot" style="background:#64748b"></span>Missing or invalid depth</div>
+            </div>
+
+            <div class="depth-dist" aria-label="Depth class counts for currently displayed structures">
+                <div class="row muted"><span>&lt; 1 ft</span><span id="binLt1">0</span></div>
+                <div class="row muted"><span>1–3 ft</span><span id="bin1to3">0</span></div>
+                <div class="row muted"><span>3–6 ft</span><span id="bin3to6">0</span></div>
+                <div class="row muted"><span>≥ 6 ft</span><span id="binGe6">0</span></div>
+                <div class="row muted"><span>No depth data</span><span id="binNull">0</span></div>
             </div>
 
             <h2>Data actions</h2>
@@ -359,14 +429,23 @@
             </div>
 
             <p class="foot">
-                Data are de-identified. A point indicates a modeled structure location,
-                not an official damage assessment. Do not use this display alone for
-                life-safety or evacuation decisions.
+                Data are de-identified (UniqueID only). A point indicates a modeled structure location,
+                not an official damage assessment or occupancy count. Coordinates and elevations are
+                provided solely for this planning visualization. Vertical datum and model assumptions
+                are not embedded here — consult the source model documentation.
+                <br><br>
+                This proof-of-concept tool does not replace the official Elkhorn Dam Emergency Action Plan.
             </p>
+
+            <div class="tech-note">
+                Technical notes: Records without a valid non-negative arrival time are omitted.
+                Some coordinates host more than one UniqueID (co-located structures). Depth values
+                in the supplied set are consistent with WSE − DEM within normal rounding.
+            </div>
         </aside>
 
         <main class="mapwrap">
-            <div id="map" aria-label="Interactive Jenkins flood map"></div>
+            <div id="map" aria-label="Interactive map of modeled structure inundation"></div>
             <div id="banner" class="empty">Loading structure locations…</div>
         </main>
     </div>
@@ -382,10 +461,10 @@
         /*
          * Embedded structure data.
          * Format:
-         * [rand_id, latitude, longitude, arrival_time, depth_ft, dem_ft, wse_ft]
+         * [UniqueID, latitude, longitude, arrival_time, depth_ft, dem_ft, wse_ft]
          *
-         * A null arrival time represents a row that was not usable in the original
-         * dashboard because it had no valid modeled arrival time.
+         * A null arrival time represents a row that could not be used because it
+         * lacked a valid modeled arrival time. Those records are omitted from the map.
          */
         const RAW_RECORDS = [
             ["BFA8C003", 37.202061, -82.579868, 0.916666687, 12, 1395.998977, 1408.201904],
@@ -395,7 +474,6 @@
             ["7468EC8F", 37.185285, -82.611553, 0.416666657, 12, 1468.263461, 1479.81897],
             ["914B0CAE", 37.18537, -82.613769, 0.416666657, 10, 1473.223068, 1483.369263],
             ["8AFC58CB", 37.185332, -82.613259, 0.416666657, 10, 1472.39665, 1482.738037],
-
             ["F6B15243", 37.183516, -82.617967, 0.33, 11, 1479.002585, 1489.681274],
             ["105ED1AB", 37.183559, -82.617587, 0.33, 10, 1479.385556, 1489.539063],
             ["F620ABF6", 37.183801, -82.617417, 0.33, 9, 1479.914307, 1489.269409],
@@ -404,7 +482,6 @@
             ["DC1EFB71", 37.189423, -82.603885, 0.5, 8, 1451.44355, 1459.600464],
             ["9978E72F", 37.189329, -82.604106, 0.5, 6, 1453.521408, 1459.723633],
             ["0AA76A60", 37.183269, -82.619832, 0.33, 7, 1483.403504, 1490.514526],
-
             ["8C145E94", 37.185032, -82.611479, null, null, 1477.72411, null],
             ["5806EA12", 37.185089, -82.611249, null, null, 1477.204771, null],
             ["75BDEA53", 37.187007, -82.607762, 1.75, 3, 1467.155196, 1470.467896],
@@ -414,7 +491,6 @@
             ["653ADC48", 37.187473, -82.604514, null, null, 1463.419496, null],
             ["07A8A98F", 37.188517, -82.603932, 0.5, 10, 1450.748093, 1460.576904],
             ["4DC48690", 37.190375, -82.59812, 0.583333313, 9, 1439.904641, 1449.05835],
-
             ["629AA7E0", 37.171366, -82.634051, 1.25, 6, 1528.950589, 1534.828003],
             ["E530EA22", 37.171366, -82.634051, 1.25, 6, 1528.950589, 1534.828003],
             ["1EAD8EF7", 37.171893, -82.634279, 0.083333336, 10, 1524.705862, 1534.26416],
@@ -422,7 +498,6 @@
             ["3492FA2E", 37.171691, -82.633737, 0.083333336, 8, 1525.808019, 1533.860962],
             ["832B1B26", 37.172623, -82.633331, 0.083333336, 11, 1521.262121, 1532.133911],
             ["E3C8FA1B", 37.172623, -82.633331, 0.083333336, 11, 1521.262121, 1532.133911],
-
             ["6F4E1111", 37.199156, -82.584967, 0.833333313, 10, 1405.310844, 1415.222046],
             ["B952DEFA", 37.199375, -82.583779, 0.916666687, 10, 1402.88005, 1412.599243],
             ["345FDE22", 37.199866, -82.583319, 0.916666687, 10, 1401.814238, 1412.014648],
@@ -430,7 +505,6 @@
             ["1B879A02", 37.200169, -82.582463, 0.916666687, 9, 1401.687983, 1410.639648],
             ["3DAB0ABB", 37.200764, -82.582608, null, null, 1409.643879, null],
             ["6494A525", 37.201482, -82.580555, 0.916666687, 12, 1396.368132, 1408.639648],
-
             ["76CD42DA", 37.172955, -82.63256, 0.083333336, 10, 1519.902747, 1530.242065],
             ["56AA3DE7", 37.180478, -82.623237, 0.25, 14, 1488.147645, 1502.412964],
             ["56EC143D", 37.181589, -82.62194, 0.333333343, 6, 1490.646022, 1496.662354],
@@ -439,14 +513,12 @@
             ["26DA85EA", 37.185197, -82.612348, 1.583333373, 5, 1476.087295, 1481.045776],
             ["724E29EA", 37.185209, -82.612144, 1.416666627, 6, 1474.121674, 1480.522705],
             ["68E8188B", 37.184996, -82.61189, null, null, 1479.324881, null],
-
             ["9C2BB4B7", 37.189997, -82.603628, 1.5, 3, 1456.319554, 1459.169556],
             ["FDE07F2B", 37.190122, -82.603225, 0.583333313, 6, 1453.397856, 1459.015747],
             ["4CF93DE5", 37.18636, -82.614897, 1.416666627, 3, 1481.042296, 1484.402832],
             ["CC3F72E9", 37.18792, -82.606583, null, null, 1469.064547, null],
             ["C5951043", 37.199145, -82.587803, 0.833333313, 10, 1410.962603, 1420.593872],
             ["DE73D904", 37.190267, -82.602608, 0.583333313, 5, 1453.528517, 1458.857544],
-
             ["6BE0AB8E", 37.169867, -82.639953, 1.5, 1, 1535.394023, 1536.795532],
             ["AD2E2E5E", 37.170093, -82.640259, 1.5, 1, 1535.710312, 1536.795532],
             ["FB308F40", 37.16952, -82.63976, 1.5, 1, 1535.428065, 1536.795532],
@@ -455,7 +527,6 @@
             ["A791CDB9", 37.169911, -82.639302, 1.33, 3, 1534.255821, 1536.795532],
             ["24601579", 37.203181, -82.577536, 1.08, 7, 1400.482899, 1407.312866],
             ["1BDDFFF6", 37.171181, -82.636089, 0.08, 10, 1526.273492, 1536.647461],
-
             ["F72969DD", 37.182429, -82.619106, 0.333333343, 10, 1480.693667, 1490.72644],
             ["F3F53FF3", 37.206273, -82.575808, 1.833333373, 4, 1398.201289, 1401.949097],
             ["B7782EEE", 37.206265, -82.57618, 1.833333373, 4, 1397.858467, 1401.950317],
@@ -463,7 +534,6 @@
             ["0FA3DE77", 37.191377, -82.597394, 0.666666687, 8, 1438.400589, 1446.783691],
             ["CA549FCA", 37.191193, -82.59775, 0.666666687, 6, 1441.267219, 1447.508911],
             ["C2DA6D63", 37.19111, -82.597225, 0.583333313, 9, 1437.579077, 1447.039063],
-
             ["A2EB851E", 37.171349, -82.635909, 0.08, 11, 1525.91405, 1536.558838],
             ["AEA98151", 37.204833, -82.575495, 1.75, 8, 1396.509606, 1404.039185],
             ["D50AD8EE", 37.204631, -82.575151, 2, 3, 1401.156628, 1404.096313],
@@ -472,7 +542,6 @@
             ["1E495D04", 37.17044, -82.63729, 1.333333373, 3, 1533.975276, 1536.79541],
             ["25EEF10C", 37.170808, -82.636165, 0.083333336, 7, 1529.603092, 1536.790283],
             ["1CF0BF33", 37.170896, -82.635676, 0.083333336, 8, 1528.630194, 1536.95105],
-
             ["FF07D545", 37.170993, -82.635494, 0.083333336, 8, 1528.419735, 1536.862427],
             ["46BBBEB5", 37.170734, -82.634844, 1.25, 6, 1532.401938, 1538.659546],
             ["616CD46F", 37.170734, -82.634844, 1.25, 6, 1532.401938, 1538.659546],
@@ -480,7 +549,6 @@
             ["864CA00D", 37.171117, -82.634655, 1.25, 5, 1531.223688, 1536.450195],
             ["0A05170E", 37.171324, -82.634849, 0.083333336, 9, 1527.573393, 1536.102539],
             ["F71BE168", 37.171324, -82.634849, 0.083333336, 9, 1527.573393, 1536.102539],
-
             ["E78D158D", 37.190529, -82.597563, 1.583333373, 8, 1440.431289, 1448.026489],
             ["728F6501", 37.190615, -82.597376, 0.583333313, 8, 1439.721616, 1447.659302],
             ["7D28CA24", 37.193387, -82.594728, 0.75, 8, 1435.895705, 1443.637939],
@@ -488,7 +556,6 @@
             ["D26E5C60", 37.195183, -82.591919, 0.75, 13, 1422.674124, 1435.80188],
             ["1185CBCB", 37.199203, -82.586715, 0.833333313, 11, 1407.975024, 1418.87439],
             ["380C16BA", 37.199142, -82.585684, 0.833333313, 8, 1408.931602, 1416.706787],
-
             ["AA6745F3", 37.189974, -82.601769, 0.5, 12, 1446.373707, 1458.550293],
             ["41B16356", 37.1894, -82.603253, 0.5, 10, 1449.291199, 1459.274536],
             ["4616AF44", 37.190111, -82.601404, 0.583333313, 12, 1446.749369, 1458.350952],
@@ -496,7 +563,6 @@
             ["7CB0E9E2", 37.189891, -82.601963, 0.5, 12, 1447.06676, 1458.637573],
             ["7E534F24", 37.18984, -82.60211, 0.5, 11, 1447.87065, 1458.691528],
             ["9D017AB7", 37.18975, -82.602332, 0.5, 12, 1446.731147, 1458.792236],
-
             ["7F23EC8B", 37.189855, -82.602866, 0.5, 10, 1448.925449, 1458.998657],
             ["E940D543", 37.189775, -82.603026, 0.5, 10, 1448.575418, 1459.049683],
             ["05CF2C1B", 37.189475, -82.603054, 0.5, 11, 1447.810376, 1459.150879],
@@ -504,7 +570,6 @@
             ["70F0D536", 37.189324, -82.603409, 0.5, 11, 1448.652112, 1459.397461],
             ["17E58247", 37.190006, -82.604201, 1.75, 1, 1458.665242, 1459.431519],
             ["C578B3B7", 37.189928, -82.603821, 1.583333373, 2, 1457.59192, 1459.394287],
-
             ["194A7BFB", 37.191298, -82.597455, 0.666666687, 8, 1439.061903, 1447.040649],
             ["D639E745", 37.191237, -82.597021, 0.666666687, 10, 1436.791708, 1446.710327],
             ["3C8DA1CE", 37.191781, -82.5969, 0.666666687, 10, 1435.621267, 1446.023071],
@@ -512,7 +577,6 @@
             ["BB476FB1", 37.191437, -82.59732, 0.666666687, 10, 1436.892131, 1446.6875],
             ["333D872B", 37.191734, -82.596954, 0.666666687, 9, 1436.617894, 1446.112183],
             ["E9AC69A7", 37.192698, -82.596092, 0.666666687, 12, 1432.720094, 1444.473022],
-
             ["39F9BDEA", 37.183447, -82.619977, 0.33, 6, 1484.332147, 1490.458496],
             ["B02DF502", 37.183829, -82.620323, 1.58, 1, 1489.157689, 1490.440308],
             ["49ED2356", 37.187156, -82.607205, 0.5, 9, 1460.337201, 1469.298828],
@@ -521,7 +585,6 @@
             ["45765EB0", 37.169837, -82.637781, 1.25, 4, 1532.656151, 1536.795532],
             ["83E1F382", 37.16975, -82.639587, 1.42, 3, 1533.794653, 1536.795532],
             ["2DA4C5D9", 37.169801, -82.639779, 1.42, 2, 1534.695062, 1536.795532],
-
             ["87C3DAB8", 37.185332, -82.613259, 0.416666657, 10, 1472.39665, 1482.738037],
             ["45B44621", 37.185332, -82.613259, 0.416666657, 10, 1472.39665, 1482.738037],
             ["E2248C21", 37.206273, -82.576091, 1.833333373, 4, 1398.354378, 1401.950073],
@@ -529,7 +592,6 @@
             ["3AF659BE", 37.182086, -82.620088, 0.333333343, 15, 1476.83902, 1492.267334],
             ["35D66C61", 37.182271, -82.619569, 0.333333343, 10, 1481.190979, 1491.304688],
             ["FB09F3E8", 37.182317, -82.619404, 0.333333343, 10, 1481.563538, 1491.14917],
-
             ["9941E314", 37.182063, -82.621085, 0.33, 7, 1487.528183, 1494.315918],
             ["00BD7349", 37.181749, -82.621166, 0.33, 10, 1485.060244, 1494.93042],
             ["F43CD68F", 37.181884, -82.620952, 0.33, 9, 1484.969432, 1494.387085],
@@ -538,7 +600,6 @@
             ["665BB96B", 37.182642, -82.619448, 0.33, 9, 1481.571248, 1490.905396],
             ["08BD900C", 37.182728, -82.619293, 0.33, 9, 1481.694599, 1490.71106],
             ["19CBC159", 37.183516, -82.617967, 0.33, 11, 1479.002585, 1489.681274],
-
             ["10AF39F7", 37.183285, -82.618465, 0.33, 10, 1479.968674, 1490.026733],
             ["7EECD658", 37.181509, -82.621376, 0.33, 12, 1483.304782, 1495.43689],
             ["52358E7D", 37.170734, -82.634844, 1.25, 6, 1532.401938, 1538.659546],
@@ -566,7 +627,12 @@
                 "export",
                 "reset",
                 "status",
-                "banner"
+                "banner",
+                "binLt1",
+                "bin1to3",
+                "bin3to6",
+                "binGe6",
+                "binNull"
             ].map(id => [id, document.getElementById(id)])
         );
 
@@ -583,7 +649,7 @@
             maxNativeZoom: 16,
             tms: false,
             tileSize: 256,
-            attribution: "Basemap: add required source attribution"
+            attribution: "Local basemap tiles • provide required source attribution"
         }).addTo(map);
 
         L.control.scale({
@@ -597,12 +663,12 @@
         let visiblePoints = [];
         let maxHours = 0;
         let selectedHours = 0;
+        let uniqueLocationCount = 0;
 
         function numeric(value) {
             if (value === null || value === undefined || value === "") {
                 return null;
             }
-
             const number = Number(value);
             return Number.isFinite(number) ? number : null;
         }
@@ -620,19 +686,18 @@
         }
 
         function displayTime(hours) {
-            return els.unit.value === "minutes"
-                ? `${(hours * 60).toFixed(1)} min`
-                : `${hours.toFixed(2)} hr`;
+            if (els.unit.value === "minutes") {
+                return `${(hours * 60).toFixed(1)} min`;
+            }
+            return `${hours.toFixed(2)} hr`;
         }
 
         function addCell(table, label, value) {
             const row = document.createElement("tr");
             const labelCell = document.createElement("td");
             const valueCell = document.createElement("td");
-
             labelCell.textContent = label;
             valueCell.textContent = value;
-
             row.append(labelCell, valueCell);
             table.append(row);
         }
@@ -645,29 +710,53 @@
             title.textContent = `Structure ${point.id}`;
 
             const table = document.createElement("table");
-
-            addCell(table, "Arrival", displayTime(point.arrivalHours));
+            addCell(table, "Arrival (from model start)", displayTime(point.arrivalHours));
             addCell(
                 table,
-                "Water depth",
-                point.depth === null ? "Unavailable" : `${point.depth.toFixed(2)} ft`
+                "Inundation depth",
+                point.depth === null ? "Unavailable" : `${point.depth.toFixed(1)} ft`
             );
             addCell(
                 table,
-                "DEM",
-                point.dem === null ? "Unavailable" : `${point.dem.toFixed(2)} ft`
+                "Ground elevation (DEM)",
+                point.dem === null ? "Unavailable" : `${point.dem.toFixed(1)} ft`
             );
             addCell(
                 table,
-                "WSE",
-                point.wse === null ? "Unavailable" : `${point.wse.toFixed(2)} ft`
+                "Water-surface elev. (WSE)",
+                point.wse === null ? "Unavailable" : `${point.wse.toFixed(1)} ft`
             );
             addCell(table, "Latitude", point.lat.toFixed(6));
             addCell(table, "Longitude", point.lon.toFixed(6));
 
-            div.append(title, table);
+            const note = document.createElement("div");
+            note.className = "note-sm";
+            note.textContent = "Depth is the modeled difference (WSE − DEM). This is a modeled location only, not an assessed damage site.";
 
+            div.append(title, table, note);
             return div;
+        }
+
+        function updateDepthBins(list) {
+            let lt1 = 0, b1 = 0, b3 = 0, ge6 = 0, nul = 0;
+            for (const p of list) {
+                if (p.depth === null || p.depth < 0) {
+                    nul++;
+                } else if (p.depth < 1) {
+                    lt1++;
+                } else if (p.depth < 3) {
+                    b1++;
+                } else if (p.depth < 6) {
+                    b3++;
+                } else {
+                    ge6++;
+                }
+            }
+            els.binLt1.textContent = lt1.toLocaleString();
+            els.bin1to3.textContent = b1.toLocaleString();
+            els.bin3to6.textContent = b3.toLocaleString();
+            els.binGe6.textContent = ge6.toLocaleString();
+            els.binNull.textContent = nul.toLocaleString();
         }
 
         function update() {
@@ -701,7 +790,6 @@
             });
 
             layer.clearLayers();
-
             const bounds = [];
 
             for (const point of visiblePoints) {
@@ -715,24 +803,32 @@
                         fillOpacity: 0.9
                     }
                 );
-
                 marker.bindPopup(() => popupFor(point));
                 marker.addTo(layer);
-
                 bounds.push([point.lat, point.lon]);
             }
 
             els.visibleCount.textContent = visiblePoints.length.toLocaleString();
             els.arrivedCount.textContent = reachedPoints.length.toLocaleString();
-
             els.highCount.textContent = reachedPoints
                 .filter(point => point.depth !== null && point.depth >= 6)
                 .length
                 .toLocaleString();
 
-            els.banner.textContent = visiblePoints.length
-                ? `${visiblePoints.length.toLocaleString()} structures displayed • ${displayTime(selectedHours)}`
-                : "No structures match the current time and filters";
+            updateDepthBins(visiblePoints);
+
+            let bannerText;
+            if (visiblePoints.length === 0) {
+                bannerText = "No structures match the current time and filters";
+            } else if (els.cumulative.checked) {
+                bannerText = `${visiblePoints.length.toLocaleString()} structures displayed • reached by ${displayTime(selectedHours)}`;
+            } else {
+                const tolDisplay = els.unit.value === "minutes"
+                    ? `${(timeTolerance * 60).toFixed(1)} min`
+                    : `${timeTolerance.toFixed(3)} hr`;
+                bannerText = `${visiblePoints.length.toLocaleString()} structures near ${displayTime(selectedHours)} (±${tolDisplay})`;
+            }
+            els.banner.textContent = bannerText;
 
             if (els.fitVisible.checked && bounds.length) {
                 map.fitBounds(bounds, {
@@ -742,6 +838,9 @@
             }
 
             els.export.disabled = visiblePoints.length === 0;
+
+            // Keep slider accessible state in sync
+            els.timeSlider.setAttribute("aria-valuetext", displayTime(selectedHours));
         }
 
         function configureTime() {
@@ -749,10 +848,7 @@
                 point.arrivalHours = toHours(point.arrivalRaw);
             }
 
-            maxHours = Math.max(
-                0,
-                ...points.map(point => point.arrivalHours)
-            );
+            maxHours = Math.max(0, ...points.map(point => point.arrivalHours));
 
             els.timeSlider.max = String(maxHours || 1);
             els.timeSlider.step = "any";
@@ -766,7 +862,6 @@
 
         function escapeCSV(value) {
             const stringValue = String(value ?? "");
-
             return /[",\r\n]/.test(stringValue)
                 ? `"${stringValue.replace(/"/g, "\"\"")}"`
                 : stringValue;
@@ -774,7 +869,7 @@
 
         function exportVisible() {
             const columns = [
-                "rand_id",
+                "UniqueID",
                 "latitude",
                 "longitude",
                 "arrival_time",
@@ -783,10 +878,26 @@
                 "wse_ft"
             ];
 
+            const headerComment = [
+                "# Elkhorn Dam modeled structure inundation (proof of concept)",
+                "# Filtered export — not an official product. UniqueIDs are de-identified.",
+                "# Arrival times relative to model start. Depth = WSE − DEM (modeled).",
+                "# Consult source model documentation for datum, assumptions, and limitations."
+            ].join("\r\n");
+
             const csv = [
+                headerComment,
                 columns.join(","),
                 ...visiblePoints.map(point =>
-                    columns.map(column => escapeCSV(point.raw[column])).join(",")
+                    [
+                        point.id,
+                        point.raw.latitude,
+                        point.raw.longitude,
+                        point.raw.arrival_time,
+                        point.raw.depth_ft,
+                        point.raw.dem_ft,
+                        point.raw.wse_ft
+                    ].map(escapeCSV).join(",")
                 )
             ].join("\r\n");
 
@@ -796,19 +907,17 @@
 
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-
             link.href = url;
-            link.download = "jenkins_filtered_structures.csv";
-
+            link.download = "elkhorn_filtered_structures.csv";
             document.body.append(link);
             link.click();
             link.remove();
-
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         function initializeData() {
             let skipped = 0;
+            const locationMap = new Map();
 
             points = RAW_RECORDS.map(record => {
                 const [
@@ -840,6 +949,9 @@
                     return null;
                 }
 
+                const key = `${lat.toFixed(6)},${lon.toFixed(6)}`;
+                locationMap.set(key, (locationMap.get(key) || 0) + 1);
+
                 return {
                     raw: {
                         rand_id,
@@ -860,6 +972,8 @@
                 };
             }).filter(Boolean);
 
+            uniqueLocationCount = locationMap.size;
+
             if (!points.length) {
                 els.status.classList.add("error");
                 els.status.textContent = "No valid embedded structure records were found.";
@@ -872,10 +986,15 @@
 
             configureTime();
 
+            const dupNote = uniqueLocationCount < points.length
+                ? ` ${points.length - uniqueLocationCount} co-located record(s) share coordinates with other structures.`
+                : "";
+
             els.status.textContent =
-                `Loaded ${points.length.toLocaleString()} embedded structures` +
-                (skipped ? `; skipped ${skipped} records without valid arrival data` : "") +
-                ".";
+                `Loaded ${points.length.toLocaleString()} structures with valid arrival times` +
+                ` (${uniqueLocationCount.toLocaleString()} unique locations).` +
+                (skipped ? ` Omitted ${skipped} record(s) without valid arrival data.` : "") +
+                dupNote;
         }
 
         els.timeSlider.addEventListener("input", update);
@@ -887,9 +1006,8 @@
         els.unit.addEventListener("change", () => {
             selectedHours = 0;
             configureTime();
-
             els.status.textContent =
-                `Arrival unit set to ${els.unit.value}. Confirm against model documentation.`;
+                `Arrival unit set to ${els.unit.value}. Confirm the unit against the source model documentation.`;
         });
 
         els.export.addEventListener("click", exportVisible);
@@ -900,9 +1018,9 @@
             els.fitVisible.checked = false;
             selectedHours = 0;
             els.timeSlider.value = "0";
-
             map.setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
             update();
+            els.status.textContent = "Filters reset to defaults.";
         });
 
         initializeData();
@@ -910,3 +1028,4 @@
 </body>
 
 </html>
+```
