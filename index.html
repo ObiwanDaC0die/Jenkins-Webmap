@@ -1,79 +1,94 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
-  <title>Jenkins, Kentucky | Interactive Map</title>
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="./leaflet/leaflet.css">
-  <style>
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
-    #map {
-      width: 100%;
-      height: 100%;
-    }
-    /* Map title */
-    .map-title {
-      position: absolute;
-      top: 15px;
-      left: 60px;
-      z-index: 1000;
-      background: white;
-      padding: 12px 18px;
-      border-radius: 8px;
-      font-size: 17px;
-      font-weight: bold;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      pointer-events: none;
-    }
-    /* Attribution */
-    .leaflet-control-attribution {
-      font-size: 11px;
-    }
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jenkins | Flood Impact Dashboard</title>
+<link rel="stylesheet" href="./leaflet/leaflet.css">
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#172334;background:#f2f5f9}*{box-sizing:border-box}body{margin:0}.app{display:grid;grid-template-columns:350px minmax(0,1fr);height:100vh;height:100dvh}.panel{overflow:auto;padding:18px;background:#fff;border-right:1px solid #dce3eb;z-index:900}h1{font-size:21px;margin:0 0 5px}h2{font-size:14px;margin:19px 0 9px}p,.muted{color:#526174;font-size:12px;line-height:1.5}.note{background:#f0f5fb;padding:10px;border-radius:8px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#f3f6fa;padding:12px;border-radius:9px}.stat b{font-size:22px;display:block}.stat span{font-size:11px;color:#506073}label{font-size:12px;font-weight:650;display:block;margin-bottom:6px}input[type=range]{width:100%;accent-color:#1768b4}input[type=search],select,button{font:inherit;width:100%;border:1px solid #cbd5e1;border-radius:7px;padding:9px;background:white}button{cursor:pointer;background:#1768b4;color:#fff;border:0;font-weight:650}button:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.row>*{min-width:0}.row button{width:auto}.legend{display:grid;gap:7px;font-size:12px}.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:middle}.controls{display:grid;gap:12px}.time{font-size:25px;font-weight:750;color:#1768b4}.mapwrap{position:relative;min-height:0}#map{height:100%;width:100%;background:#e7edf4}.status{font-size:12px;color:#41546c;margin-top:12px;overflow-wrap:anywhere}.error{color:#b42318}.foot{font-size:11px;color:#68778b;margin-top:20px}.inline{display:flex;gap:8px;align-items:center;font-size:12px}.inline input{margin:0}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.buttons button:last-child{background:#3e536c}.empty{position:absolute;z-index:800;top:14px;left:50%;transform:translateX(-50%);background:white;padding:9px 13px;border-radius:8px;box-shadow:0 2px 10px #0002;font-size:12px;max-width:80%;text-align:center}.popup table{border-collapse:collapse}.popup td{padding:3px 9px 3px 0;font-size:12px}.popup td:first-child{font-weight:600}@media(max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:minmax(280px,44dvh) minmax(320px,56dvh)}.panel{grid-row:2;border-right:0;border-top:1px solid #dce3eb}.mapwrap{grid-row:1}.empty{font-size:11px}}
+</style>
 </head>
 <body>
-  <!-- Map container -->
-  <div id="map"></div>
-  <!-- Map title -->
-  <div class="map-title">Jenkins, Kentucky</div>
-  <!-- Leaflet JavaScript -->
-  <script src="./leaflet/leaflet.js"></script>
-  <script>
-    // Initialize map centered on Jenkins, KY
-    const map = L.map('map', {
-      center: [37.173, -82.630],
-      zoom: 13,
-      minZoom: 11,
-      maxZoom: 16,
-      zoomControl: true
-    });
-    // Load locally exported QGIS XYZ tiles
-    const basemap = L.tileLayer(
-      './jenkins_tiles/{z}/{x}/{y}.png',
-      {
-        minZoom: 11,
-        maxZoom: 16,
-        maxNativeZoom: 16,
-        tileSize: 256,
-        tms: false,
-        attribution: 'Basemap: include required source credits'
-      }
-    );
-    basemap.addTo(map);
-    // Add scale bar
-    L.control.scale({
-      position: 'bottomleft',
-      metric: true,
-      imperial: true
-    }).addTo(map);
-  </script>
+<div class="app">
+<aside class="panel" aria-label="Flood impact controls">
+<h1>Jenkins Flood Impact</h1><p>Modeled structure exposure • scenario exploration</p>
+<div class="note muted">Planning visualization only. Arrival time is relative to the model's scenario start, not a real-world clock time. Depth classes are not evacuation thresholds.</div>
+<h2>Modeled arrival timeline</h2>
+<div class="row"><span id="timeValue" class="time">0.00 hr</span><span id="timePercent" class="muted"></span></div>
+<input id="timeSlider" type="range" min="0" max="1" step="any" value="0" disabled aria-label="Elapsed arrival time">
+<div class="row muted"><span>Scenario start</span><span id="maxLabel">—</span></div>
+<div class="controls" style="margin-top:12px">
+<div><label for="unit">CSV arrival_time unit</label><select id="unit"><option value="hours" selected>Hours (assumed)</option><option value="minutes">Minutes</option></select></div>
+<div class="inline"><input id="cumulative" type="checkbox" checked><label for="cumulative" style="margin:0">Show all structures reached by selected time</label></div>
+<div><label for="search">Find structure by rand_id</label><input id="search" type="search" placeholder="Enter ID (partial match)"></div>
+<div><label for="minDepth">Minimum modeled depth</label><select id="minDepth"><option value="0">All nonnegative depths</option><option value="1">At least 1 ft</option><option value="3">At least 3 ft</option><option value="6">At least 6 ft</option></select></div>
+<div class="inline"><input id="fitVisible" type="checkbox"><label for="fitVisible" style="margin:0">Fit map to filtered points</label></div>
+</div>
+<h2>Structure summary</h2>
+<div class="stats"><div class="stat"><b id="visibleCount">0</b><span>Displayed structures</span></div><div class="stat"><b id="arrivedCount">0</b><span>Reached by time</span></div><div class="stat"><b id="highCount">0</b><span>Reached at ≥6 ft</span></div><div class="stat"><b id="totalCount">0</b><span>Valid CSV structures</span></div></div>
+<h2>Modeled water depth</h2><div class="legend"><div><span class="dot" style="background:#16a34a"></span>Less than 1 ft</div><div><span class="dot" style="background:#eab308"></span>1 to less than 3 ft</div><div><span class="dot" style="background:#f97316"></span>3 to less than 6 ft</div><div><span class="dot" style="background:#dc2626"></span>6 ft or greater</div><div><span class="dot" style="background:#64748b"></span>Missing/invalid depth</div></div>
+<h2>Data actions</h2><div class="buttons"><button id="export" disabled>Export visible CSV</button><button id="reset">Reset filters</button></div>
+<div id="status" class="status" role="status">Loading arrival_ponts.csv…</div>
+<p class="foot">Data are de-identified. A point indicates a modeled structure location, not an official damage assessment. Do not use this display alone for life-safety or evacuation decisions.</p>
+</aside>
+<main class="mapwrap"><div id="map" aria-label="Interactive Jenkins flood map"></div><div id="banner" class="empty">Loading structure locations…</div></main>
+</div>
+<script src="./leaflet/leaflet.js"></script>
+<script>
+'use strict';
+const CSV_PATH='./arrival_ponts.csv';
+const els=Object.fromEntries(['timeSlider','timeValue','timePercent','maxLabel','unit','cumulative','search','minDepth','fitVisible','visibleCount','arrivedCount','highCount','totalCount','export','reset','status','banner'].map(id=>[id,document.getElementById(id)]));
+const map=L.map('map',{center:[37.173,-82.630],zoom:13,minZoom:11,maxZoom:16});
+L.tileLayer('./jenkins_tiles/{z}/{x}/{y}.png',{minZoom:11,maxZoom:16,maxNativeZoom:16,tms:false,tileSize:256,attribution:'Basemap: add required source attribution'}).addTo(map);
+L.control.scale({metric:true,imperial:true}).addTo(map);
+const layer=L.layerGroup().addTo(map);
+let points=[],maxHours=0,selectedHours=0,visiblePoints=[];
+function parseCSV(src){
+const rows=[];let row=[],field='',inQuotes=false;src=src.replace(/^\uFEFF/,'');
+for(let i=0;i<src.length;i++){const ch=src[i];if(ch==='"'){if(inQuotes&&src[i+1]==='"'){field+='"';i++;}else inQuotes=!inQuotes;}
+else if(ch===','&&!inQuotes){row.push(field);field='';}
+else if((ch==='\r'||ch==='\n')&&!inQuotes){if(ch==='\r'&&src[i+1]==='\n')i++;row.push(field);if(row.some(x=>x.trim()))rows.push(row);row=[];field='';}
+else field+=ch;}
+row.push(field);if(row.some(x=>x.trim()))rows.push(row);
+if(!rows.length)return [];
+const headers=rows.shift().map(s=>s.trim().toLowerCase());
+const required=['rand_id','latitude','longitude','arrival_time','depth_ft','dem_ft','wse_ft'];
+const missing=required.filter(h=>!headers.includes(h));if(missing.length)throw new Error('Missing CSV columns: '+missing.join(', '));
+return rows.map(cols=>Object.fromEntries(headers.map((h,i)=>[h,(cols[i]??'').trim()])));
+}
+function numeric(value){if(value==null||String(value).trim()==='')return null;const n=Number(value);return Number.isFinite(n)?n:null;}
+function depthColor(d){if(d===null||d<0)return '#64748b';if(d<1)return '#16a34a';if(d<3)return '#eab308';if(d<6)return '#f97316';return '#dc2626';}
+function toHours(v){return els.unit.value==='minutes'?v/60:v;}
+function displayTime(h){return els.unit.value==='minutes'?`${(h*60).toFixed(1)} min`:`${h.toFixed(2)} hr`;}
+function addCell(table,label,value){const tr=document.createElement('tr'),a=document.createElement('td'),b=document.createElement('td');a.textContent=label;b.textContent=value;tr.append(a,b);table.append(tr);}
+function popupFor(p){const div=document.createElement('div');div.className='popup';const title=document.createElement('strong');title.textContent='Structure '+p.id;div.append(title);const t=document.createElement('table');addCell(t,'Arrival',displayTime(p.arrivalHours));addCell(t,'Water depth',p.depth===null?'Unavailable':p.depth.toFixed(2)+' ft');addCell(t,'DEM',p.dem===null?'Unavailable':p.dem.toFixed(2)+' ft');addCell(t,'WSE',p.wse===null?'Unavailable':p.wse.toFixed(2)+' ft');addCell(t,'Latitude',p.lat.toFixed(6));addCell(t,'Longitude',p.lon.toFixed(6));div.append(t);return div;}
+function update(){
+selectedHours=Number(els.timeSlider.value);els.timeValue.textContent=displayTime(selectedHours);els.timePercent.textContent=maxHours?Math.round(selectedHours/maxHours*100)+'% of timeline':'';
+const term=els.search.value.trim().toLowerCase(),minimum=Number(els.minDepth.value);
+const reached=points.filter(p=>p.arrivalHours<=selectedHours);
+visiblePoints=points.filter(p=>{
+const timeOK=els.cumulative.checked?p.arrivalHours<=selectedHours:Math.abs(p.arrivalHours-selectedHours)<=Math.max(maxHours/100,1/120);
+const depthOK=p.depth!==null&&p.depth>=minimum;
+return timeOK&&depthOK&&p.id.toLowerCase().includes(term);
+});
+layer.clearLayers();const bounds=[];
+for(const p of visiblePoints){const marker=L.circleMarker([p.lat,p.lon],{radius:6,weight:1.5,color:'#fff',fillColor:depthColor(p.depth),fillOpacity:.9});marker.bindPopup(()=>popupFor(p));marker.addTo(layer);bounds.push([p.lat,p.lon]);}
+els.visibleCount.textContent=visiblePoints.length.toLocaleString();els.arrivedCount.textContent=reached.length.toLocaleString();els.highCount.textContent=reached.filter(p=>p.depth!==null&&p.depth>=6).length.toLocaleString();
+els.banner.textContent=visiblePoints.length?`${visiblePoints.length.toLocaleString()} structures displayed • ${displayTime(selectedHours)}`:'No structures match the current time and filters';
+if(els.fitVisible.checked&&bounds.length)map.fitBounds(bounds,{padding:[30,30],maxZoom:15});
+els.export.disabled=!visiblePoints.length;
+}
+function configureTime(){for(const p of points)p.arrivalHours=toHours(p.arrivalRaw);maxHours=Math.max(0,...points.map(p=>p.arrivalHours));els.timeSlider.max=String(maxHours||1);els.timeSlider.step='any';els.timeSlider.value=String(Math.min(selectedHours,maxHours));els.maxLabel.textContent=displayTime(maxHours);update();}
+function escapeCSV(s){const str=String(s??'');return /[",\r\n]/.test(str)?'"'+str.replace(/"/g,'""')+'"':str;}
+function exportVisible(){const cols=['rand_id','latitude','longitude','arrival_time','depth_ft','dem_ft','wse_ft'];const csv=[cols.join(','),...visiblePoints.map(p=>cols.map(k=>escapeCSV(p.raw[k])).join(','))].join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='jenkins_filtered_structures.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+async function load(){try{const response=await fetch(CSV_PATH);if(!response.ok)throw new Error('Could not load '+CSV_PATH+' (HTTP '+response.status+')');const rows=parseCSV(await response.text());let skipped=0;points=rows.map(raw=>{const lat=numeric(raw.latitude),lon=numeric(raw.longitude),arrivalRaw=numeric(raw.arrival_time);if(lat===null||lon===null||Math.abs(lat)>90||Math.abs(lon)>180||arrivalRaw===null||arrivalRaw<0){skipped++;return null;}return {raw,id:raw.rand_id||'Unlabeled',lat,lon,arrivalRaw,depth:numeric(raw.depth_ft),dem:numeric(raw.dem_ft),wse:numeric(raw.wse_ft)};}).filter(Boolean);if(!points.length)throw new Error('No valid locations and arrival times in CSV');els.totalCount.textContent=points.length.toLocaleString();els.timeSlider.disabled=false;configureTime();els.status.textContent=`Loaded ${points.length.toLocaleString()} structures${skipped?`; skipped ${skipped} invalid rows`:''}. Arrival time unit: ${els.unit.value}.`;}
+catch(e){els.status.classList.add('error');els.status.textContent=e.message+' — Run the site through a local web server or GitHub Pages; check CSV filename and column headers.';els.banner.textContent='Unable to load structure data';console.error(e);}}
+els.timeSlider.addEventListener('input',update);
+for(const id of ['cumulative','search','minDepth','fitVisible'])els[id].addEventListener(id==='search'?'input':'change',update);
+els.unit.addEventListener('change',()=>{selectedHours=0;configureTime();els.status.textContent='Arrival unit set to '+els.unit.value+'. Confirm against model documentation.';});
+els.export.addEventListener('click',exportVisible);
+els.reset.addEventListener('click',()=>{els.search.value='';els.minDepth.value='0';els.cumulative.checked=true;els.fitVisible.checked=false;els.timeSlider.value='0';map.setView([37.173,-82.630],13);update();});
+load();
+</script>
 </body>
 </html>
