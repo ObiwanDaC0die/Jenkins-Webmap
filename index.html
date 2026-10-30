@@ -318,7 +318,7 @@
             <div class="note note-warn">
                 <strong>Proof of concept — not an official product.</strong>
                 This display is a supplemental planning aid only. It is not a replacement for the official Emergency Action Plan.
-                Arrival times are relative to the model start (not clock time). Depth classes are not evacuation thresholds.
+                Arrival times are relative to the model start (not clock time) and are expressed in hours. Depth classes are not evacuation thresholds.
                 Do not use this tool alone for life-safety, evacuation, or operational decisions.
             </div>
 
@@ -336,23 +336,14 @@
             </div>
 
             <input id="timeSlider" type="range" min="0" max="1" step="any" value="0"
-                disabled aria-label="Elapsed arrival time from model start">
+                disabled aria-label="Elapsed arrival time from model start in hours">
 
             <div class="row muted" style="margin-top:4px;">
-                <span>Scenario start</span>
+                <span>Scenario start (0 hr)</span>
                 <span id="maxLabel">—</span>
             </div>
 
             <div class="controls">
-                <div>
-                    <label for="unit">Arrival-time unit</label>
-                    <select id="unit" aria-describedby="unitHelp">
-                        <option value="hours" selected>Hours (model units)</option>
-                        <option value="minutes">Minutes</option>
-                    </select>
-                    <p id="unitHelp" class="muted" style="margin:4px 0 0;">Confirm unit against model documentation.</p>
-                </div>
-
                 <div class="inline">
                     <input id="cumulative" type="checkbox" checked>
                     <label for="cumulative" style="margin:0; font-weight:500;">
@@ -438,7 +429,8 @@
             </p>
 
             <div class="tech-note">
-                Technical notes: Records without a valid non-negative arrival time are omitted.
+                Technical notes: Arrival times are in hours relative to model start (data range approximately 0–2 hr).
+                Records without a valid non-negative arrival time are omitted.
                 Some coordinates host more than one UniqueID (co-located structures). Depth values
                 in the supplied set are consistent with WSE − DEM within normal rounding.
             </div>
@@ -461,8 +453,9 @@
         /*
          * Embedded structure data.
          * Format:
-         * [UniqueID, latitude, longitude, arrival_time, depth_ft, dem_ft, wse_ft]
+         * [UniqueID, latitude, longitude, arrival_time_hours, depth_ft, dem_ft, wse_ft]
          *
+         * Arrival times are in hours relative to model start.
          * A null arrival time represents a row that could not be used because it
          * lacked a valid modeled arrival time. Those records are omitted from the map.
          */
@@ -616,7 +609,6 @@
                 "timeValue",
                 "timePercent",
                 "maxLabel",
-                "unit",
                 "cumulative",
                 "minDepth",
                 "fitVisible",
@@ -681,14 +673,7 @@
             return "#dc2626";
         }
 
-        function toHours(value) {
-            return els.unit.value === "minutes" ? value / 60 : value;
-        }
-
         function displayTime(hours) {
-            if (els.unit.value === "minutes") {
-                return `${(hours * 60).toFixed(1)} min`;
-            }
             return `${hours.toFixed(2)} hr`;
         }
 
@@ -773,6 +758,7 @@
                 point => point.arrivalHours <= selectedHours
             );
 
+            // Tolerance window for non-cumulative mode (hours)
             const timeTolerance = maxHours > 0
                 ? Math.max(maxHours / 100, 1 / 120)
                 : 0;
@@ -823,10 +809,7 @@
             } else if (els.cumulative.checked) {
                 bannerText = `${visiblePoints.length.toLocaleString()} structures displayed • reached by ${displayTime(selectedHours)}`;
             } else {
-                const tolDisplay = els.unit.value === "minutes"
-                    ? `${(timeTolerance * 60).toFixed(1)} min`
-                    : `${timeTolerance.toFixed(3)} hr`;
-                bannerText = `${visiblePoints.length.toLocaleString()} structures near ${displayTime(selectedHours)} (±${tolDisplay})`;
+                bannerText = `${visiblePoints.length.toLocaleString()} structures near ${displayTime(selectedHours)} (±${timeTolerance.toFixed(3)} hr)`;
             }
             els.banner.textContent = bannerText;
 
@@ -839,15 +822,10 @@
 
             els.export.disabled = visiblePoints.length === 0;
 
-            // Keep slider accessible state in sync
             els.timeSlider.setAttribute("aria-valuetext", displayTime(selectedHours));
         }
 
         function configureTime() {
-            for (const point of points) {
-                point.arrivalHours = toHours(point.arrivalRaw);
-            }
-
             maxHours = Math.max(0, ...points.map(point => point.arrivalHours));
 
             els.timeSlider.max = String(maxHours || 1);
@@ -872,7 +850,7 @@
                 "UniqueID",
                 "latitude",
                 "longitude",
-                "arrival_time",
+                "arrival_time_hours",
                 "depth_ft",
                 "dem_ft",
                 "wse_ft"
@@ -881,7 +859,7 @@
             const headerComment = [
                 "# Elkhorn Dam modeled structure inundation (proof of concept)",
                 "# Filtered export — not an official product. UniqueIDs are de-identified.",
-                "# Arrival times relative to model start. Depth = WSE − DEM (modeled).",
+                "# Arrival times are in hours relative to model start. Depth = WSE − DEM (modeled).",
                 "# Consult source model documentation for datum, assumptions, and limitations."
             ].join("\r\n");
 
@@ -965,7 +943,7 @@
                     id: rand_id || "Unlabeled",
                     lat,
                     lon,
-                    arrivalRaw,
+                    arrivalHours: arrivalRaw,   // data are already in hours
                     depth: numeric(depth_ft),
                     dem: numeric(dem_ft),
                     wse: numeric(wse_ft)
@@ -1002,13 +980,6 @@
         for (const id of ["cumulative", "minDepth", "fitVisible"]) {
             els[id].addEventListener("change", update);
         }
-
-        els.unit.addEventListener("change", () => {
-            selectedHours = 0;
-            configureTime();
-            els.status.textContent =
-                `Arrival unit set to ${els.unit.value}. Confirm the unit against the source model documentation.`;
-        });
 
         els.export.addEventListener("click", exportVisible);
 
